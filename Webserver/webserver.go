@@ -6,15 +6,16 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"time"
 )
 
 var rspID = 0
 var rnd *rand.Rand
 
-const DefaultFailRate := 10 // in percent
-const DefaultFailTimeout := 10 // in milliseconds
-const DefaultServerPort := "8080"
+const DefaultFailRate = 10    // in percent
+const DefaultFailTimeout = 10 // in milliseconds
+const DefaultServerPort = "8080"
 
 var ss serverSettings // hate this!
 
@@ -22,18 +23,19 @@ type serverSettings struct {
 	failureRate    int
 	failureTimeout int
 	serverPort     string
+	serverName     string
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	rspID++
 	if rnd.Intn(100) > ss.failureRate {
 		fmt.Fprintf(w, "Hello! You've requested %s!\n", r.URL.Path)
-		fmt.Fprintf(w, "Respose Id: %d!\n", rspID)
+		fmt.Fprintf(w, "Server: %s, Port: %s, Respose Id: %d!\n", ss.serverName, ss.serverPort[1:], rspID)
 	} else {
 		time.Sleep(time.Duration(ss.failureTimeout) * time.Millisecond)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 - Simulated a server failure!\n"))
-		fmt.Fprintf(w, "Respose Id: %d!\n", rspID)
+		fmt.Fprintf(w, "Server: %s, Port: %s, Respose Id: %d!\n", ss.serverName, ss.serverPort[1:], rspID)
 	}
 }
 
@@ -46,6 +48,8 @@ func parseArgs(ss *serverSettings) {
 	ss.failureRate = *fR
 	ss.failureTimeout = *fTO
 	ss.serverPort = ":" + *sP
+	ss.serverName, _ = os.Hostname()
+
 }
 
 func main() {
