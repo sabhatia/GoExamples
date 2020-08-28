@@ -12,9 +12,9 @@ import (
 var rspID = 0
 var rnd *rand.Rand
 
-const DefaultFailRate = 10    // percent
-const DefaultFailTimeout = 10 // milliseconds
-const DefaultServerPort = "8080"
+const DefaultFailRate := 10 // in percent
+const DefaultFailTimeout := 10 // in milliseconds
+const DefaultServerPort := "8080"
 
 var ss serverSettings // hate this!
 
