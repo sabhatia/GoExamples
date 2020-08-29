@@ -34,6 +34,10 @@ type serverStats struct {
 	httpRspAll int
 }
 
+func resetStatsHandler(w http.ResponseWriter, r *http.Request) {
+	st = serverStats{}
+}
+
 func statsHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Server: %s, Port: %s, Requests: %d, Success: %d, Failure: %d, Total: %d\n",
 		ss.serverName, ss.serverPort[1:], st.httpREQ, st.httpRspOk, st.httpRspErr, st.httpRspAll)
@@ -79,5 +83,6 @@ func main() {
 	// start the server
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/stats/", statsHandler)
+	http.HandleFunc("/resetStats/", resetStatsHandler)
 	log.Fatal(http.ListenAndServe(ss.serverPort, nil))
 }
