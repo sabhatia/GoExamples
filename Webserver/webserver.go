@@ -18,6 +18,7 @@ const DefaultFailTimeout = 10 // in milliseconds
 const DefaultServerPort = "8080"
 
 var ss serverSettings // hate this!
+var st serverStats    //hate this too!
 
 type serverSettings struct {
 	failureRate    int
@@ -26,17 +27,33 @@ type serverSettings struct {
 	serverName     string
 }
 
+type serverStats struct {
+	httpREQ    int
+	httpRspOk  int
+	httpRspErr int
+	httpRspAll int
+}
+
+func statsHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Server: %s, Port: %s, Requests: %d, Success: %d, Failure: %d, Total: %d\n",
+		ss.serverName, ss.serverPort[1:], st.httpREQ, st.httpRspOk, st.httpRspErr, st.httpRspAll)
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	rspID++
-	if rnd.Intn(100) > ss.failureRate {
+	st.httpREQ++
+	if rnd.Intn(100)+1 > ss.failureRate {
 		fmt.Fprintf(w, "Hello! You've requested %s!\n", r.URL.Path)
 		fmt.Fprintf(w, "Server: %s, Port: %s, Respose Id: %d!\n", ss.serverName, ss.serverPort[1:], rspID)
+		st.httpRspOk++
 	} else {
 		time.Sleep(time.Duration(ss.failureTimeout) * time.Millisecond)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 - Simulated a server failure!\n"))
 		fmt.Fprintf(w, "Server: %s, Port: %s, Respose Id: %d!\n", ss.serverName, ss.serverPort[1:], rspID)
+		st.httpRspErr++
 	}
+	st.httpRspAll++
 }
 
 func parseArgs(ss *serverSettings) {
@@ -61,5 +78,6 @@ func main() {
 
 	// start the server
 	http.HandleFunc("/", handler)
+	http.HandleFunc("/stats/", statsHandler)
 	log.Fatal(http.ListenAndServe(ss.serverPort, nil))
 }
