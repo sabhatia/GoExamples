@@ -70,7 +70,6 @@ func parseArgs(ss *serverSettings) {
 	ss.failureTimeout = *fTO
 	ss.serverPort = ":" + *sP
 	ss.serverName, _ = os.Hostname()
-
 }
 
 func main() {
